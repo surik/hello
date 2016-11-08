@@ -58,16 +58,19 @@ build_request(SingleRequest, Options, State = #jsonrpc_info{ reqid = ReqId }) ->
     Request = SingleRequest#request{type = type(Info#jsonrpc_info.reqid), proto_data = Info, id = ReqId},
     {ok, Request, State#jsonrpc_info{ reqid = ReqId+1 }}.
 
-encode(Batch, _Opts) when is_list(Batch)  ->
+encode(Batch, Opts) when is_list(Batch)  ->
     EncodedBatch = [ encode_single(Request) || Request <- Batch ],
-    {ok, hello_json:encode(EncodedBatch)};
-encode(Single, _Opts) ->
+    Mod = proplists:get_value(decoder, Opts, hello_json),
+    {ok, Mod:encode(EncodedBatch)};
+encode(Single, Opts) ->
     EncodedSingle = encode_single(Single),
-    {ok, hello_json:encode(EncodedSingle)}.
+    Mod = proplists:get_value(decoder, Opts, hello_json),
+    {ok, Mod:encode(EncodedSingle)}.
 
-decode(Binary, _Opts, Type) ->
+decode(Binary, Opts, Type) ->
     try
-        case hello_json:decode(to_binary(Binary)) of
+        Mod = proplists:get_value(decoder, Opts, hello_json),
+        case Mod:decode(to_binary(Binary)) of
             Batch = [ Single | _ ] when is_map(Single) ->
                 decode_batch(Batch, Type);
             Single ->
@@ -80,7 +83,9 @@ decode(Binary, _Opts, Type) ->
             {error, #error{code = parse_error}}
     end.
 
-signature(_Opts) -> hello_json:signature().
+signature(Opts) -> 
+    Mod = proplists:get_value(decoder, Opts, hello_json),
+    Mod:signature().
 
 %% ----------------------------------------------------------------------------------------------------
 %% -- Encoding

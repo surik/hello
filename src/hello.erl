@@ -123,7 +123,7 @@ start_listener(URL) ->
 
 -spec start_listener(URL :: url(), TransportOpts :: list()) -> {ok, listener_ref()} | {error, Reason :: term()}.
 start_listener(URL, TransportOpts) ->
-    start_listener(URL, TransportOpts, hello_proto_jsonrpc, [{decoder, hello_msgpack}], hello_router).
+    start_listener(URL, TransportOpts, hello_proto_jsonrpc, [{decoder, hello_json}], hello_router).
 
 -spec start_listener(URL :: url(), TransportOpts :: list(), Protocol :: module(),
                      ProtocolOpts :: list(), RouterMod :: module()) ->
